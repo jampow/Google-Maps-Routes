@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="initial-scale=1.0, user-scalable=no"/>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+  <title>Google Maps - Rotas</title>
+  <link href="http://code.google.com/apis/maps/documentation/javascript/examples/default.css" rel="stylesheet" type="text/css" />
+  <style type="text/css">
+    #instructions li {
+      color: #666;
+      font-style: italic;
+    }
+    #route {
+      list-style-type: upper-alpha;
+    }
+  </style>
+</head>
+<body onload="initialize()">
+
+  <div id="map_canvas" style="float:left;width:70%;height:100%;"></div>
+  <div id="control_panel" style="float:right;width:30%;text-align:left;">
+    <div style="padding:10px">
+
+      <ul id="instructions">
+        <li>Dê um duplo clique para remover um endereço da rota.</li>
+        <li>Arraste os endereços para reordenar os pontos de parada.</li>
+      </ul>
+
+      <input type="text"   id="addr" name="address" />
+      <input type="button" id="adic" name="adicionar" value="Adicionar à Rota" />
+
+      <!--Adicionando alguns endereços por padrão-->
+      <ol id="route">
+        <li id="1">R. Cipriano Barata, 200 - São Paulo</li>
+        <li id="2">Av. Lacerda Franco, 400 - São Paulo</li>
+      </ol>
+
+      <input type="button" id="trace" name="trace" value="Traçar Rota" />
+    </div>
+
+  </div>
+
+  <script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?sensor=false"></script>
+  <script src="https://www.google.com/jsapi" type="text/javascript"></script>
+  <script language="Javascript" type="text/javascript">
+  //<![CDATA[
+    google.load("jquery"  , "1.6.2" );
+    google.load("jqueryui", "1.8.16");
+  //]]>
+  </script>
+  <script type="text/javascript">
+    var directionDisplay;
+    var map;
+    var directionsService = new google.maps.DirectionsService();
+
+    function initialize() {
+      directionsDisplay = new google.maps.DirectionsRenderer();
+      var saopaulo = new google.maps.LatLng(-23.5489433, -46.6388182);
+      var myOptions = {
+        zoom: 12,
+        mapTypeId: google.maps.MapTypeId.ROADMAP,
+        center: saopaulo
+      }
+      map = new google.maps.Map(document.getElementById("map_canvas"), myOptions);
+      directionsDisplay.setMap(map);
+    }
+
+    $(function(){
+      //Adiciona endereço à lista
+      $('#adic').click(function(){
+        var ender = $('#addr').val();
+        if (ender != '') {
+          $('#addr').val('');
+          var newid = new Date().getTime(); //hora em milisegundos para criar id único
+          $('#route').append('<li id="' + newid + '">' + ender + '</li>');
+        }
+      });
+
+      //Habilita embaralhamento da lista
+      $('#route').sortable({axis:'y'});
+
+      //exclui endereço no duplo clique
+      $('#route').delegate('li', 'dblclick', function(){
+        $(this).remove();
+      });
+
+      //Função auxiliar para pegar o texto do id passado
+      function getText(id) {
+        return $('#'+id).text();
+      }
+
+      //Função chamada no clique do botão para traçar a rota
+      $('#trace').click(function () {
+        var addresses = $('#route').sortable("toArray");
+        var len       = addresses.length
+
+        //Verifica se tem o mínimo de endereços
+        if (len < 2) {
+          alert('Se liga... Não existe rota sem pelo menos dois endereços!');
+          return false;
+        }
+
+        //Verifica se passou o limite de endereços
+        if (len > 10) {
+          alert('Nada feito, se quiser mais de 10 pontos, tem que pagar pra Google');
+          return false;
+        }
+
+        var start = getText(addresses[0]);       //Pega o primeiro endereço
+        var end   = getText(addresses[len - 1]); //Pega o último endereço
+        var waypts = [];
+        for (var i = 1; i < len-1; i++) {        //Monta Array com endereços intermediários
+            waypts.push({
+                location:getText(addresses[i]),
+                stopover:true});
+        }
+
+        //Monta objeto com os parâmetro a serem passados pro Google Maps
+        var request = {
+            origin: start,
+            destination: end,
+            waypoints: waypts,
+            optimizeWaypoints: false,
+            travelMode: google.maps.DirectionsTravelMode.DRIVING
+        };
+
+        //Faz requisição
+        directionsService.route(request, function(response, status) {
+          if (status == google.maps.DirectionsStatus.OK) {
+            directionsDisplay.setDirections(response); // Se retornar com sucesso, renderiza o mapa
+          }
+        });
+      });
+
+    });
+
+  </script>
+</body>
+</html>
+
