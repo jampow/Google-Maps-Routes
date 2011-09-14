@@ -13,6 +13,9 @@
     #route {
       list-style-type: upper-alpha;
     }
+    #route li {
+      cursor: n-resize;
+    }
   </style>
 </head>
 <body onload="initialize()">
@@ -69,11 +72,23 @@
       //Adiciona endereço à lista
       $('#adic').click(function(){
         var ender = $('#addr').val();
-        if (ender != '') {
-          $('#addr').val('');
-          var newid = new Date().getTime(); //hora em milisegundos para criar id único
-          $('#route').append('<li id="' + newid + '">' + ender + '</li>');
+        var len   = $('#route').sortable("toArray").length;
+        
+        //Verifica se foi digitado um endereço
+        if (ender == '') {
+          alert('Esqueceu! Preencha o campo de endereço.');
+          return false;
         }
+        
+        $('#addr').val('').focus();                                      //Limpa endereço e devolve o cursor nele
+        var newid = new Date().getTime();                                //hora em milisegundos para criar id único
+        $('#route').append('<li id="' + newid + '">' + ender + '</li>'); //Adiciona endereço ao final da lista
+        
+        //Vefirica se foi adicionado o último endereço e desabilita o campo
+        if (len == 9) {
+          $('#addr, #adic').attr('disabled', 'disabled');
+        }
+      
       });
 
       //Habilita embaralhamento da lista
@@ -82,6 +97,7 @@
       //exclui endereço no duplo clique
       $('#route').delegate('li', 'dblclick', function(){
         $(this).remove();
+        $('#addr, #adic').removeAttr('disabled');
       });
 
       //Função auxiliar para pegar o texto do id passado
@@ -128,6 +144,8 @@
         directionsService.route(request, function(response, status) {
           if (status == google.maps.DirectionsStatus.OK) {
             directionsDisplay.setDirections(response); // Se retornar com sucesso, renderiza o mapa
+          } else {
+            alert('Algo deu errado, verifique os endereços.');
           }
         });
       });
