@@ -39,6 +39,8 @@
       </ol>
 
       <input type="button" id="trace" name="trace" value="Traçar Rota" />
+      <input type="checkbox" id="optimize" value="1"/>
+      <label for="optimize">Otimizar pontos intermediários</label>
     </div>
 
   </div>
@@ -73,22 +75,22 @@
       $('#adic').click(function(){
         var ender = $('#addr').val();
         var len   = $('#route').sortable("toArray").length;
-        
+
         //Verifica se foi digitado um endereço
         if (ender == '') {
           alert('Esqueceu! Preencha o campo de endereço.');
           return false;
         }
-        
+
         $('#addr').val('').focus();                                      //Limpa endereço e devolve o cursor nele
         var newid = new Date().getTime();                                //hora em milisegundos para criar id único
         $('#route').append('<li id="' + newid + '">' + ender + '</li>'); //Adiciona endereço ao final da lista
-        
+
         //Vefirica se foi adicionado o último endereço e desabilita o campo
         if (len == 9) {
           $('#addr, #adic').attr('disabled', 'disabled');
         }
-      
+
       });
 
       //Habilita embaralhamento da lista
@@ -109,6 +111,7 @@
       $('#trace').click(function () {
         var addresses = $('#route').sortable("toArray");
         var len       = addresses.length
+        var optmze = $('#optimize:checked').val() == undefined ? false : true;
 
         //Verifica se tem o mínimo de endereços
         if (len < 2) {
@@ -136,7 +139,7 @@
             origin: start,
             destination: end,
             waypoints: waypts,
-            optimizeWaypoints: false,
+            optimizeWaypoints: optmze,
             travelMode: google.maps.DirectionsTravelMode.DRIVING
         };
 
