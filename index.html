@@ -70,7 +70,7 @@
       directionsDisplay.setMap(map);
     }
 
-    $(function(){
+    function load(){
       //Adiciona endereço à lista
       $('#adic').click(function(){
         var ender = $('#addr').val();
@@ -153,7 +153,15 @@
         });
       });
 
-    });
+    };
+
+    //Espera o jQuery estar pronto
+    var interval = setInterval(function() {
+      if (typeof jQuery === 'function') {
+	load();
+        clearInterval(interval);
+      }
+    }, 500);
 
   </script>
 </body>
